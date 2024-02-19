@@ -12,7 +12,7 @@ import java.util.List;
 @RequestMapping("question")
 public class QuestionController {
 
-    @Autowired
+    @Autowired  // aralarında bağımlılık olan sınıflar varsa bu sınıfların aralarındaki bağımlılığı otomatik olarak sağlar.
     QuestionService questionService;
 
     // Tüm Soruları Listeleme
@@ -27,11 +27,20 @@ public class QuestionController {
         return questionService.getQuestionsByCategory(category);
     }
 
+    // Doğru cevaba göre listeleme
+    @GetMapping("right/{right_answer}")
+    public ResponseEntity<List<Question>> getQuestionByRight(@PathVariable String right_answer){
+        return questionService.getQuestionsByRight(right_answer);
+    }
+
+
     // Soru Ekleme (RequestBody annotation ile Json formatında gönderdiğiğimiz veriyi alır)
     @PostMapping("add")
     public ResponseEntity<String> addQuestion(@RequestBody Question question){
         return questionService.addQuestion(question);
     }
+
+    // silme işlemi için eklendi
 
     @DeleteMapping("deleteQuestion/{id}")
     public String deleteQuestionById(@PathVariable("id") Integer id) {

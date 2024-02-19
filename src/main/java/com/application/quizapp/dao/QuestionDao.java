@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository  //(db işlemleri için gerekli metotlar)
 public interface QuestionDao extends JpaRepository<Question, Integer> {
 
     // JPA bizim yerimize kategoriye göre soru getirebilir.
@@ -15,4 +15,7 @@ public interface QuestionDao extends JpaRepository<Question, Integer> {
 
     @Query(value = "SELECT * FROM question q Where q.category=:category ORDER BY RANDOM() LIMIT :numQ", nativeQuery = true)
     List<Question> findRandomQuestionsByCategory(String category, int numQ);
+
+    List<Question> findByRightAnswer(String right_answer);
+
 }

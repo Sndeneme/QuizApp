@@ -2,10 +2,7 @@ package com.application.quizapp.service;
 
 import com.application.quizapp.dao.QuestionDao;
 import com.application.quizapp.dao.QuizDao;
-import com.application.quizapp.model.Question;
-import com.application.quizapp.model.QuestionWrapper;
-import com.application.quizapp.model.Quiz;
-import com.application.quizapp.model.Response;
+import com.application.quizapp.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class QuizService {
@@ -59,31 +54,14 @@ public class QuizService {
 
     // Quiz Sorularını getirecek
     public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(Integer id) {
-        Optional<Quiz> quizOptional = quizDao.findById(id);
+        Optional<Quiz> quizOptional = quizDao.findById(id); //verilen id'ye sahip quiz bulunmaya çalışılıyor
         if (quizOptional.isPresent()) {
-            Quiz quiz = quizOptional.get();
-            List<Question> questionsFromDB = quiz.getQuestions();
-            List<QuestionWrapper> questionsForUser = new ArrayList<>();
+            Quiz quiz = quizOptional.get();  // quiz alınıyor
+            List<Question> questionsFromDB = quiz.getQuestions();  // quiz içindeki sorular alınıyor
+            List<QuestionWrapper> questionsForUser = new ArrayList<>(); // istenen alanları döndürecek şekilde veriyi oluşturuyor.
             for (Question q : questionsFromDB) {
                 QuestionWrapper qw = new QuestionWrapper(q.getId(), q.getQuestionTitle(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4());
-                questionsForUser.add(qw);
-            }
-            return new ResponseEntity<>(questionsForUser, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-    }
-/*
-    public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(String right_answer) {
-        Optional<Quiz> quizOptional = quizDao.findById();
-        if (quizOptional.isPresent()) {
-            Quiz quiz = quizOptional.get();
-            List<Question> questionsFromDB = quiz.getQuestions();
-            List<QuestionWrapper> questionsForUser = new ArrayList<>();
-            for (Question q : questionsFromDB) {
-                QuestionWrapper qw = new QuestionWrapper(q.getId(), q.getQuestionTitle(), q.getOption1(), q.getOption2(), q.getOption3(), q.getOption4());
-                questionsForUser.add(qw);
+                questionsForUser.add(qw);  // sorular questionforusera ekleniyor.
             }
             return new ResponseEntity<>(questionsForUser, HttpStatus.OK);
         } else {
@@ -92,48 +70,57 @@ public class QuizService {
 
     }
 
- */
 
     // Doğru Sayısı
+/*
     public ResponseEntity<Integer> calculateResult(Integer id, List<Response> responses) {
         Quiz quiz = quizDao.findById(id).get();
         List<Question> questions = quiz.getQuestions();
         int right = 0;
         int i = 0;
         for (Response response : responses) {
-            if(response.getResponse().equals(questions.get(i).getRight_answer()))
+            if(response.getResponse().equals(questions.get(i).getRightAnswer())) {
                 right++;
-// yanlış soruyu göruntuleme?
-            i++;
-        }
-            return new ResponseEntity<>(right, HttpStatus.OK);
-    }
 
-
-    /*
-    public ResponseEntity<Integer> calculateResult(Integer id, List<Response> responses) {
-        Optional<Quiz> optionalQuiz = quizDao.findById(id);
-        if (optionalQuiz.isPresent()) {
-            Quiz quiz = optionalQuiz.get();
-            List<Question> questions = quiz.getQuestions();
-
-            int right = 0;
-
-            int numOfResponses = Math.min(responses.size(), questions.size());
-
-            for (int i = 0; i < numOfResponses; i++) {
-                Response response = responses.get(i);
-                Question question = questions.get(i);
-
-                if (response.getResponse().equals(question.getRight_answer())){
-                    right++;
-                }
+                i++;
             }
-            return new ResponseEntity<>(right, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(right, HttpStatus.OK); // rightanswer dönecek count değil
     }
-    */
+ */
+
+     // düzenlenmiş  ??? question service içinde olması gerek????
+   public Question getQuestionById(Integer questionId){
+        Optional<Question> optionalQuestion = questionDao.findById(questionId);
+        return optionalQuestion.orElse(null);
+   }
+
+
+    // yanlış cevaplanan soruların filtrelenip döndürülmesi
+    public ResponseEntity<List<Question>> getIncorrectlyAnsweredQuestions(Integer id, List<Response> responses) {  // (quiz kimliği ve cevapların listesi)
+        Quiz quiz = quizDao.findById(id).orElse(null);
+        if (quiz == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        List<Question> questions = quiz.getQuestions();
+        List<Question> incorrectQuestions = new ArrayList<>();
+
+        if (questions.size() != responses.size()) {  // soru ve cevap sayısının eşit olup olmadığının kontrolü
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            Response userResponse = responses.get(i);
+
+            if (!userResponse.getResponse().equals(question.getRightAnswer())) {
+                incorrectQuestions.add(question);
+            }
+        }
+
+        return new ResponseEntity<>(incorrectQuestions, HttpStatus.OK);
+    }
 
 }
 

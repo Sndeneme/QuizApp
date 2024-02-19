@@ -22,5 +22,4 @@ public class QuestionWrapper {
         this.option4 = option4;
     }
 
-
 }

@@ -5,7 +5,11 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
-public class Response {
-    private Integer id;
+public class Response {  // quiz controller içinde kullanılıyor
+    private Integer questionid;
     private String response;
+
+    public Integer getQuestionId() {
+        return this.questionid;
+    }
 }
